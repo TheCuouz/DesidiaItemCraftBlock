@@ -1,0 +1,5 @@
+# Archivo de configuración para DesidiaItemCraftBlock by Cuouz
+# Configuración del mensaje de crafteo
+
+EnableCraftMessage: false
+Message: "¡No, no, no! ¡You can't craft this item!"
