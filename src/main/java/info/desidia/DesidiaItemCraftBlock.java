@@ -1,52 +1,96 @@
 package info.desidia;
 
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.CraftItemEvent;
-import org.mineacademy.fo.plugin.SimplePlugin;
+import info.desidia.api.DIBApi;
+import info.desidia.commands.DIBCommand;
+import info.desidia.hooks.PlaceholderAPIHook;
+import info.desidia.hooks.WorldGuardHook;
+import info.desidia.listeners.CraftListener;
+import info.desidia.managers.BlockManager;
+import info.desidia.managers.ConfigManager;
+import info.desidia.managers.LocaleManager;
+import info.desidia.managers.StatsManager;
+import info.desidia.util.UpdateChecker;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bstats.bukkit.Metrics;
 
-import java.io.File;
+public final class DesidiaItemCraftBlock extends JavaPlugin {
 
-public final class DesidiaItemCraftBlock extends SimplePlugin implements Listener {
+    private ConfigManager configManager;
+    private LocaleManager localeManager;
+    private StatsManager statsManager;
+    private BlockManager blockManager;
+    private WorldGuardHook worldGuardHook;
+    private PlaceholderAPIHook placeholderAPIHook;
 
-	private boolean enableCraftMessage;
-	private String craftMessage;
+    @Override
+    public void onLoad() {
+        if (Bukkit.getPluginManager().getPlugin("WorldGuard") != null) {
+            WorldGuardHook.registerFlags();
+        }
+    }
 
-	@Override
-	protected void onPluginStart() {
-		System.out.println("@Este plugin se ha iniciado correctamente!");
-		System.out.println("@This plugin enabled successfully!");
-		System.out.println("@Cuouz firma!");
+    @Override
+    public void onEnable() {
+        saveDefaultConfig();
 
-		if (!getDataFolder().exists()) {
-			getDataFolder().mkdirs();
-		}
+        configManager = new ConfigManager(this);
+        localeManager = new LocaleManager(this, configManager.getLocale());
+        statsManager = new StatsManager(this);
 
-		File configFile = new File(getDataFolder(), "config.yml");
-		if (!configFile.exists()) {
-			saveResource("config.yml", false);
-		}
+        boolean wgAvailable = Bukkit.getPluginManager().getPlugin("WorldGuard") != null;
+        worldGuardHook = new WorldGuardHook(wgAvailable);
+        if (wgAvailable) {
+            getLogger().info("[DIB] WorldGuard detected - region blocking enabled.");
+        }
 
-		reloadConfiguration();
+        blockManager = new BlockManager(configManager, worldGuardHook);
 
-		getServer().getPluginManager().registerEvents(this, this);
-		getCommand("dib").setExecutor(new Commands(this));
-	}
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            placeholderAPIHook = new PlaceholderAPIHook(this);
+            placeholderAPIHook.register();
+            getLogger().info("[DIB] PlaceholderAPI detected - placeholders registered.");
+        }
 
-	public void reloadConfiguration() {
-		reloadConfig();
-		enableCraftMessage = getConfig().getBoolean("EnableCraftMessage", false);
-		craftMessage = getConfig().getString("Message", "¡No, no, no! ¡You can't craft this item!");
-	}
+        getServer().getPluginManager().registerEvents(new CraftListener(this), this);
 
-	@EventHandler
-	public void onCrafting(CraftItemEvent event) {
-		if (!event.isCancelled()) {
-			event.setCancelled(true);
+        DIBCommand cmd = new DIBCommand(this);
+        getCommand("dib").setExecutor(cmd);
+        getCommand("dib").setTabCompleter(cmd);
 
-			if (enableCraftMessage) {
-				event.getWhoClicked().sendMessage(craftMessage);
-			}
-		}
-	}
+        // Stats autosave task
+        int intervalTicks = configManager.getStatsAutosaveInterval() * 60 * 20;
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, statsManager::save, intervalTicks, intervalTicks);
+
+        // Public API
+        DIBApi.init(this);
+
+        // bStats metrics (plugin ID placeholder — update when published on bStats)
+        new Metrics(this, 1);
+
+        // Update checker
+        if (configManager.isUpdateChecker()) {
+            new UpdateChecker(this).checkAsync();
+        }
+
+        getLogger().info("[DIB] DesidiaItemCraftBlock v" + getDescription().getVersion() + " enabled!");
+    }
+
+    @Override
+    public void onDisable() {
+        if (statsManager != null) statsManager.save();
+        getLogger().info("[DIB] Stats saved. Plugin disabled.");
+    }
+
+    public void reload() {
+        configManager.reload();
+        localeManager.reload(configManager.getLocale());
+    }
+
+    public ConfigManager getConfigManager() { return configManager; }
+    public LocaleManager getLocaleManager() { return localeManager; }
+    public StatsManager getStatsManager() { return statsManager; }
+    public BlockManager getBlockManager() { return blockManager; }
+    public WorldGuardHook getWorldGuardHook() { return worldGuardHook; }
+    public PlaceholderAPIHook getPlaceholderAPIHook() { return placeholderAPIHook; }
 }

@@ -1,5 +1,27 @@
-# Archivo de configuración para DesidiaItemCraftBlock by Cuouz
-# Configuración del mensaje de crafteo
+# DesidiaItemCraftBlock v2.0.0 — config.yml
+settings:
+  mode: blacklist
+  enabled: true
+  locale: es
+  notify-admins: false
+  log-attempts: false
+  update-checker: true
+  stats-autosave-interval: 5
 
-EnableCraftMessage: false
-Message: "¡No, no, no! ¡You can't craft this item!"
+message:
+  enabled: true
+  text: "&c!No puedes craftear &e{item}&c aqui!"
+  type: CHAT
+  sound: ENTITY_VILLAGER_NO
+  cooldown: 3
+
+worlds:
+  default:
+    enabled: true
+    mode: blacklist
+    blocked:
+      - DIAMOND_SWORD
+    allowed: []
+    custom-messages: {}
+
+regions: {}

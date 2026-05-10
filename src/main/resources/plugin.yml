@@ -1,37 +1,33 @@
-#
-# This is the file your server opens to find the main class of your 
-# plugin and its information. We automatically replace variables here 
-# from your pom.xml file. YOU GENERALLY DO NOT NEED TO EDIT THIS.
-#
-# See https://www.spigotmc.org/wiki/plugin-yml/ for more information.
-# 
 name: ${project.name}
 version: ${project.version}
 main: ${main.class}
 author: ${author}
-
-# DO NOT EDIT. This api-version is used for maximum backward compatibility.
 api-version: 1.13
 
-# Load the following libraries
-libraries:
-  # DO NOT EDIT THE FIRST LIBRARY, required to make your plugin work under Java 15+
-  - org.openjdk.nashorn:nashorn-core:15.4
-  #- org.jsoup:jsoup:1.14.3
-  #- com.zaxxer:HikariCP:5.0.1  
+softdepend: [WorldGuard, PlaceholderAPI]
 
-# Same as libraries, but only works on Minecraft <1.16 using our own special method.
-#legacy-libraries:
+permissions:
+  dib.help:        { default: op }
+  dib.reload:      { default: op }
+  dib.toggle:      { default: op }
+  dib.status:      { default: op }
+  dib.list:        { default: op }
+  dib.block:       { default: op }
+  dib.unblock:     { default: op }
+  dib.check:       { default: op }
+  dib.stats:       { default: op }
+  dib.stats.reset: { default: op }
+  dib.gui:         { default: op }
+  dib.notify:      { default: op }
+  dib.bypass:
+    default: false
+    children:
+      dib.bypass.world.*: true
+      dib.bypass.region.*: true
+      dib.bypass.item.*: true
 
-# Plugins that we support so that we are loaded after them for your convenience.
-softdepend: [ AuthMe, BanManager, BungeeChatAPI, CMI, DiscordSRV, Factions, Feudal, ItemsAdder, Essentials, LegacyFactions, Lands, LuckPerms, Multiverse-Core, MVdWPlaceholderAPI, MythicMobs, mcMMO, Nicky, PlaceholderAPI, ProtocolLib, SimpleClans, Towny, TownyChat, Vault, WorldEdit ]
-
-#
-# The commands are built at runtime so you can change them easily within the settings.
-# Do not change anything in here, you will break the plugin and get no support.
-#
 commands:
   dib:
-    description: Reloads de config of the plugin
-    usage: /dib reload
-    permission: dib.reload
+    description: Comando principal de DesidiaItemCraftBlock
+    usage: /dib help
+    permission: dib.help
