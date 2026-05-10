@@ -1,5 +1,6 @@
 package info.desidia;
 
+import info.desidia.api.DIBApi;
 import info.desidia.commands.DIBCommand;
 import info.desidia.hooks.PlaceholderAPIHook;
 import info.desidia.hooks.WorldGuardHook;
@@ -8,8 +9,10 @@ import info.desidia.managers.BlockManager;
 import info.desidia.managers.ConfigManager;
 import info.desidia.managers.LocaleManager;
 import info.desidia.managers.StatsManager;
+import info.desidia.util.UpdateChecker;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bstats.bukkit.Metrics;
 
 public final class DesidiaItemCraftBlock extends JavaPlugin {
 
@@ -58,6 +61,17 @@ public final class DesidiaItemCraftBlock extends JavaPlugin {
         // Stats autosave task
         int intervalTicks = configManager.getStatsAutosaveInterval() * 60 * 20;
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, statsManager::save, intervalTicks, intervalTicks);
+
+        // Public API
+        DIBApi.init(this);
+
+        // bStats metrics (plugin ID placeholder — update when published on bStats)
+        new Metrics(this, 1);
+
+        // Update checker
+        if (configManager.isUpdateChecker()) {
+            new UpdateChecker(this).checkAsync();
+        }
 
         getLogger().info("[DIB] DesidiaItemCraftBlock v" + getDescription().getVersion() + " enabled!");
     }
