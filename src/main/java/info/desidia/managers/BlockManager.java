@@ -35,8 +35,17 @@ public class BlockManager {
 
         // 4. WorldGuard region flags
         if (worldGuard != null && worldGuard.isAvailable() && regionName != null) {
-            BlockDecision wgDecision = worldGuard.evaluate(player, material, regionName);
-            if (wgDecision != null) return wgDecision;
+            // Per-item allow flag takes highest WG precedence
+            if (worldGuard.isAllowedByItemFlag(player, mat)) return BlockDecision.allow();
+            // Per-item deny flag
+            if (worldGuard.isDeniedByItemFlag(player, mat))
+                return BlockDecision.block(BlockReason.REGION, regionName, null);
+            // Global deny-craft state flag
+            Boolean denied = worldGuard.evaluateDenyCraftFlag(player);
+            if (denied != null) {
+                if (denied) return BlockDecision.block(BlockReason.REGION, regionName, null);
+                return BlockDecision.allow();
+            }
         }
 
         // 5. Config regions (fallback when WG not available)

@@ -21,6 +21,13 @@ public final class DesidiaItemCraftBlock extends JavaPlugin {
     private PlaceholderAPIHook placeholderAPIHook;
 
     @Override
+    public void onLoad() {
+        if (Bukkit.getPluginManager().getPlugin("WorldGuard") != null) {
+            WorldGuardHook.registerFlags();
+        }
+    }
+
+    @Override
     public void onEnable() {
         saveDefaultConfig();
 
@@ -28,9 +35,9 @@ public final class DesidiaItemCraftBlock extends JavaPlugin {
         localeManager = new LocaleManager(this, configManager.getLocale());
         statsManager = new StatsManager(this);
 
-        if (Bukkit.getPluginManager().getPlugin("WorldGuard") != null) {
-            worldGuardHook = new WorldGuardHook();
-            worldGuardHook.register();
+        boolean wgAvailable = Bukkit.getPluginManager().getPlugin("WorldGuard") != null;
+        worldGuardHook = new WorldGuardHook(wgAvailable);
+        if (wgAvailable) {
             getLogger().info("[DIB] WorldGuard detected - region blocking enabled.");
         }
 
